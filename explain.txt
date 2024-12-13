@@ -3,7 +3,6 @@ import numpy as np
 import pinocchio as pin
 from typing import Dict, Tuple, Optional
 from dataclasses import dataclass
-import yaml
 from .ik_solver import HandIKSolver, Position
 
 @dataclass
@@ -26,65 +25,26 @@ class HandKinematicsBase:
     """Base class for hand kinematics calculations"""
     
     def __init__(self, urdf_path: Path, config_path: Path):
-        """
-        Initialize hand kinematics with URDF and config files
-        
-        Args:
-            urdf_path: Path to robot URDF file
-            config_path: Path to configuration YAML file
-        """
         self.robot = pin.RobotWrapper.BuildFromURDF(str(urdf_path))
         self.config_path = config_path
-        
-        # Load configuration
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
-            
         self._init_frames()
         self.ik_solvers = {}
 
+        
     def _init_frames(self):
-        """Initialize frame IDs for each finger tip and reference frames"""
-        # Load finger frames from config
-        self.finger_frames = self.config['finger_frames']
+        """Initialize frame IDs for each finger tip"""
+        self.finger_frames = {
+            'thumb': 'r_f_link1_4',
+            'index': 'r_f_link2_4',
+            'middle': 'r_f_link3_4',
+            'ring': 'r_f_link4_4',
+            'pinky': 'r_f_link5_4'
+        }
+        
         self.frame_ids = {
             finger: self.robot.model.getFrameId(frame)
             for finger, frame in self.finger_frames.items()
         }
-        
-        # Get reference frame IDs
-        self.hand_frame_id = self.robot.model.getFrameId(self.config['frames']['hand'])
-        self.world_frame_id = self.robot.model.getFrameId(self.config['frames']['world'])
-
-    def _transform_position(self, pos: Position, from_frame: str, to_frame: str) -> Position:
-        """
-        Transform position between reference frames
-        
-        Args:
-            pos: Position to transform
-            from_frame: Source reference frame ('hand' or 'world')
-            to_frame: Target reference frame ('hand' or 'world')
-        Returns:
-            Transformed position
-        """
-        if from_frame == to_frame:
-            return pos
-            
-        # Convert position to numpy array
-        pos_array = np.array([pos.x, pos.y, pos.z])
-        
-        if from_frame == 'world' and to_frame == 'hand':
-            # World to hand transformation
-            oMh = self.robot.data.oMf[self.hand_frame_id]
-            transformed_pos = oMh.inverse().act(pos_array)
-        elif from_frame == 'hand' and to_frame == 'world':
-            # Hand to world transformation
-            oMh = self.robot.data.oMf[self.hand_frame_id]
-            transformed_pos = oMh.act(pos_array)
-        else:
-            raise ValueError(f"Unsupported frame transformation: {from_frame} to {to_frame}")
-            
-        return Position(x=transformed_pos[0], y=transformed_pos[1], z=transformed_pos[2])
 
     def forward_kinematics(
         self,
@@ -98,11 +58,10 @@ class HandKinematicsBase:
         Args:
             joint_angles: Current joint angles
             base_pose: Optional base pose of the hand
-            frame: Reference frame ('hand' or 'world')
+            frame: Reference frame
         Returns:
-            Dictionary of finger poses in specified frame
+            Dictionary of finger poses
         """
-        # First compute FK in hand frame
         q = np.zeros(self.robot.model.nq)
         for joint, angle in joint_angles.angles.items():
             idx = self.robot.model.getJointId(joint)
@@ -114,19 +73,13 @@ class HandKinematicsBase:
         poses = {}
         for finger, frame_id in self.frame_ids.items():
             transform = self.robot.data.oMf[frame_id]
-            pos = Position(
-                x=transform.translation[0],
-                y=transform.translation[1],
-                z=transform.translation[2]
-            )
-            
-            # Transform to requested frame if needed
-            if frame == 'world':
-                pos = self._transform_position(pos, 'hand', 'world')
-                
             poses[finger] = Pose(
-                position=pos,
-                orientation=transform.rotation
+                position = Position(
+                    x=transform.translation[0],
+                    y=transform.translation[1],
+                    z=transform.translation[2]
+                ),
+                orientation = transform.rotation
             )
             
         return poses
@@ -144,20 +97,16 @@ class HandKinematicsBase:
         Args:
             finger: Target finger name
             target_pos: Target position
-            frame: Reference frame ('hand' or 'world')
+            frame: Reference frame
             initial_guess: Initial joint angles
         Returns:
             Tuple of (joint angles, success flag)
         """
-        # Transform target position to hand frame if needed
-        if frame == 'world':
-            target_pos = self._transform_position(target_pos, 'world', 'hand')
-
         if finger not in self.ik_solvers:
             self.ik_solvers[finger] = HandIKSolver(
                 self.robot,
                 self.finger_frames[finger],
-                config_path=self.config_path
+                config_path=self.config_path  # 需要添加这个参数
             )
 
         if initial_guess is not None:
@@ -189,7 +138,7 @@ class HandKinematicsBase:
         
         Args:
             finger_targets: Target positions for each finger
-            frame: Reference frame ('hand' or 'world')
+            frame: Reference frame
             initial_guess: Initial joint angles
         Returns:
             Tuple of (joint angles for all fingers, success flag)
@@ -205,3 +154,6 @@ class HandKinematicsBase:
             all_success &= success
             
         return JointAngles(angles=all_results), all_success
+
+base.py中方法forward_kinematics，inverse_kinematics_finger，inverse_kinematics_grasp的参数frame其实是正逆运动学的参考坐标系，
+可以选 hand 或者 world
