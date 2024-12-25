@@ -1,0 +1,87 @@
+# Right Hand Configuration
+
+# URDF paths
+urdf_path: "dexrobot_urdf/urdf/dexhand021_right.urdf"
+
+# Reference frames
+frames:
+  hand: "right_hand_base"
+  world: "world"
+
+# Frame names for each finger
+finger_frames:
+  thumb: "r_f_link1_4"
+  index: "r_f_link2_4"
+  middle: "r_f_link3_4"
+  ring: "r_f_link4_4"
+  pinky: "r_f_link5_4"
+
+# Fingertip frames
+fingertip_frames:
+  thumb: "r_f_link1_tip"
+  index: "r_f_link2_tip"
+  middle: "r_f_link3_tip"
+  ring: "r_f_link4_tip"
+  pinky: "r_f_link5_tip"
+
+# Joint limits (based on URDF limits)
+joint_limits:
+  # 拇指关节
+  r_f_joint1_1: [0, 2.2]
+  r_f_joint1_2: [0, 1.3]
+  r_f_joint1_3: [0, 1.3]
+  r_f_joint1_4: [0, 1.3]
+
+  # 食指关节
+  r_f_joint2_1: [0, 0.6]
+  r_f_joint2_2: [0, 1.3]
+  r_f_joint2_3: [0, 1.3]
+  r_f_joint2_4: [0, 1.3]
+
+  # 中指关节
+  r_f_joint3_1: [-0.001, 0.001]
+  r_f_joint3_2: [0, 1.3]
+  r_f_joint3_3: [0, 1.3]
+  r_f_joint3_4: [0, 1.3]
+
+  # 无名指关节
+  r_f_joint4_1: [0, 0.6]
+  r_f_joint4_2: [0, 1.3]
+  r_f_joint4_3: [0, 1.3]
+  r_f_joint4_4: [0, 1.3]
+
+  # 小指关节
+  r_f_joint5_1: [0, 0.6]
+  r_f_joint5_2: [0, 1.3]
+  r_f_joint5_3: [0, 1.3]
+  r_f_joint5_4: [0, 1.3]
+
+# Default joint positions (initial pose)
+default_joint_positions:
+  r_f_joint1_1: 0.0
+  r_f_joint1_2: 0.0
+  r_f_joint1_3: 0.0
+  r_f_joint1_4: 0.0
+  r_f_joint2_1: 0.0
+  r_f_joint2_2: 0.0
+  r_f_joint2_3: 0.0
+  r_f_joint2_4: 0.0
+  r_f_joint3_1: 0.0
+  r_f_joint3_2: 0.0
+  r_f_joint3_3: 0.0
+  r_f_joint3_4: 0.0
+  r_f_joint4_1: 0.0
+  r_f_joint4_2: 0.0
+  r_f_joint4_3: 0.0
+  r_f_joint4_4: 0.0
+  r_f_joint5_1: 0.0
+  r_f_joint5_2: 0.0
+  r_f_joint5_3: 0.0
+  r_f_joint5_4: 0.0
+
+# IK solver parameters
+ik_solver_params:
+  max_iterations: 100
+  epsilon: 0.001
+  dt: 0.001
+  damping: 0.1

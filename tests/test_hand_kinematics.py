@@ -2,7 +2,7 @@ import numpy as np
 import pinocchio as pin
 import pytest
 from dexrobot_kinematics.hand.base import HandKinematicsBase
-from dexrobot_kinematics.types import JointAngles, Position, Pose
+from dexrobot_kinematics.utils.types import JointAngles, Position, Pose
 
 @pytest.fixture
 def right_hand():

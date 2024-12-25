@@ -1,17 +1,10 @@
-# ik_solver.py
-import numpy as np
+import numpy as np 
 import pinocchio as pin
-from typing import Tuple, Optional, Dict
-from dataclasses import dataclass
+from typing import Tuple, Optional
 import yaml
 from pathlib import Path
 
-@dataclass
-class Position:
-    """3D position representation with x, y, z coordinates"""
-    x: float
-    y: float 
-    z: float
+from dexrobot_kinematics.utils.types import Position
 
 class HandIKSolver:
     """A Pinocchio-based IK solver for robotic hand that handles joint limits and finger joint synchronization"""
@@ -93,6 +86,8 @@ class HandIKSolver:
         orientation_weight: float = 0.0
     ) -> Tuple[np.ndarray, bool]:
         """
+        Solve inverse kinematics
+        
         Args:
             target_pos: Target end-effector position
             initial_q: Initial joint configuration
@@ -100,32 +95,43 @@ class HandIKSolver:
         Returns:
             Tuple of (final joint configuration, success flag)
         """
-        if initial_q is None:
-            q = np.zeros(self.nq)
-        else:
-            q = initial_q.copy()
+        try:
+            if initial_q is None:
+                q = pin.neutral(self.robot.model)
+            else:
+                q = initial_q.copy()
+                
+            target = target_pos.to_array()
             
-        target = np.array([target_pos.x, target_pos.y, target_pos.z])
-        
-        for i in range(self.max_iter):
-            pin.forwardKinematics(self.robot.model, self.robot.data, q)
-            pin.updateFramePlacements(self.robot.model, self.robot.data)
-            
-            current_pos = self.robot.data.oMf[self.frame_id].translation
-            err = target - current_pos
-            
-            if np.linalg.norm(err) < self.eps:
+            for i in range(self.max_iter):
+                pin.forwardKinematics(self.robot.model, self.robot.data, q)
+                pin.updateFramePlacements(self.robot.model, self.robot.data)
+                
+                current_pos = self.robot.data.oMf[self.frame_id].translation
+                err = target - current_pos
+                
+                if np.linalg.norm(err) < self.eps:
+                    q = self._enforce_joint_limits(q)
+                    q = self._synchronize_finger_joints(q)
+                    return q, True
+                    
+                J = pin.computeFrameJacobian(
+                    self.robot.model, 
+                    self.robot.data,
+                    q,
+                    self.frame_id
+                )[:3]
+                
+                JJt = J @ J.T
+                lambda2 = self.damping ** 2
+                v = J.T @ np.linalg.solve(JJt + lambda2 * np.eye(3), err)
+                
+                q = pin.integrate(self.robot.model, q, v)
                 q = self._enforce_joint_limits(q)
                 q = self._synchronize_finger_joints(q)
-                return q, True
                 
-            J = pin.computeFrameJacobian(self.robot.model, self.robot.data, q, self.frame_id)[:3]
-            JJt = J @ J.T
-            lambda2 = self.damping ** 2
-            v = J.T @ np.linalg.solve(JJt + lambda2 * np.eye(3), err)
-            
-            q = pin.integrate(self.robot.model, q, v)
-            q = self._enforce_joint_limits(q)
-            q = self._synchronize_finger_joints(q)
-            
-        return q, False
+            return q, False
+
+        except Exception as e:
+            print(f"IK solver error: {str(e)}")
+            return pin.neutral(self.robot.model), False

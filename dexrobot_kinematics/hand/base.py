@@ -2,25 +2,10 @@ from pathlib import Path
 import numpy as np
 import pinocchio as pin
 from typing import Dict, Tuple, Optional
-from dataclasses import dataclass
 import yaml
-from .ik_solver import HandIKSolver, Position
 
-@dataclass
-class Pose:
-    """Represents position and optional orientation"""
-    position: Position
-    orientation: Optional[np.ndarray] = None
-    
-@dataclass 
-class JointAngles:
-    """Container for joint angles"""
-    angles: Dict[str, float]
-    
-@dataclass
-class FingerTargets:
-    """Container for finger target positions"""
-    positions: Dict[str, Position]
+from .ik_solver import HandIKSolver
+from dexrobot_kinematics.utils.types import Position, Pose, JointAngles, FingerTargets
 
 class HandKinematicsBase:
     """Base class for hand kinematics calculations"""
@@ -44,12 +29,19 @@ class HandKinematicsBase:
         self.ik_solvers = {}
 
     def _init_frames(self):
-        """Initialize frame IDs for each finger tip and reference frames"""
+        """Initialize frame IDs for both finger pads and fingertips"""
         # Load finger frames from config
-        self.finger_frames = self.config['finger_frames']
+        self.finger_frames = self.config['finger_frames']  # 指肚框架
+        self.fingertip_frames = self.config['fingertip_frames']  # 指尖框架
+        
+        # Initialize frame IDs for both types
         self.frame_ids = {
             finger: self.robot.model.getFrameId(frame)
             for finger, frame in self.finger_frames.items()
+        }
+        self.fingertip_ids = {
+            finger: self.robot.model.getFrameId(frame)
+            for finger, frame in self.fingertip_frames.items()
         }
         
         # Get reference frame IDs
@@ -90,7 +82,8 @@ class HandKinematicsBase:
         self,
         joint_angles: JointAngles,
         base_pose: Optional[Pose] = None,
-        frame: str = 'hand'
+        frame: str = 'hand',
+        end_effector: str = 'finger'  # 'finger' or 'fingertip'
     ) -> Dict[str, Pose]:
         """
         Compute forward kinematics for all fingers
@@ -99,10 +92,11 @@ class HandKinematicsBase:
             joint_angles: Current joint angles
             base_pose: Optional base pose of the hand
             frame: Reference frame ('hand' or 'world')
+            end_effector: Target frame type ('finger' or 'fingertip')
         Returns:
             Dictionary of finger poses in specified frame
         """
-        # First compute FK in hand frame
+        # Convert joint angles to configuration vector
         q = np.zeros(self.robot.model.nq)
         for joint, angle in joint_angles.angles.items():
             idx = self.robot.model.getJointId(joint)
@@ -111,24 +105,20 @@ class HandKinematicsBase:
         pin.forwardKinematics(self.robot.model, self.robot.data, q)
         pin.updateFramePlacements(self.robot.model, self.robot.data)
         
+        # Select appropriate frame IDs based on end effector type
+        target_ids = self.fingertip_ids if end_effector == 'fingertip' else self.frame_ids
+        
         poses = {}
-        for finger, frame_id in self.frame_ids.items():
-            transform = self.robot.data.oMf[frame_id]
-            pos = Position(
-                x=transform.translation[0],
-                y=transform.translation[1],
-                z=transform.translation[2]
-            )
+        for finger, frame_id in target_ids.items():
+            pose = Pose.from_se3(self.robot.data.oMf[frame_id])
             
-            # Transform to requested frame if needed
-            if frame == 'world':
-                pos = self._transform_position(pos, 'hand', 'world')
+            # Transform to world frame if needed
+            if frame == 'world' and base_pose is not None:
+                pose = base_pose.to_se3() * pose.to_se3()
+                pose = Pose.from_se3(pose)
                 
-            poses[finger] = Pose(
-                position=pos,
-                orientation=transform.rotation
-            )
-            
+            poses[finger] = pose
+                
         return poses
 
     def inverse_kinematics_finger(
@@ -136,6 +126,7 @@ class HandKinematicsBase:
         finger: str,
         target_pos: Position,
         frame: str = 'hand',
+        end_effector: str = 'finger',
         initial_guess: Optional[JointAngles] = None
     ) -> Tuple[JointAngles, bool]:
         """
@@ -145,6 +136,7 @@ class HandKinematicsBase:
             finger: Target finger name
             target_pos: Target position
             frame: Reference frame ('hand' or 'world')
+            end_effector: Target frame type ('finger' or 'fingertip')
             initial_guess: Initial joint angles
         Returns:
             Tuple of (joint angles, success flag)
@@ -153,10 +145,17 @@ class HandKinematicsBase:
         if frame == 'world':
             target_pos = self._transform_position(target_pos, 'world', 'hand')
 
+        # Select target frame based on end effector type
+        target_frame = (
+            self.fingertip_frames[finger] 
+            if end_effector == 'fingertip' 
+            else self.finger_frames[finger]
+        )
+
         if finger not in self.ik_solvers:
             self.ik_solvers[finger] = HandIKSolver(
                 self.robot,
-                self.finger_frames[finger],
+                target_frame,
                 config_path=self.config_path
             )
 
@@ -182,14 +181,15 @@ class HandKinematicsBase:
         self,
         finger_targets: FingerTargets,
         frame: str = 'hand',
+        end_effector: str = 'finger',
         initial_guess: Optional[JointAngles] = None
     ) -> Tuple[JointAngles, bool]:
-        """
-        Solve IK for multiple fingers simultaneously
+        """ fingers simultaneously
         
         Args:
             finger_targets: Target positions for each finger
             frame: Reference frame ('hand' or 'world')
+            end_effector: Target frame type ('finger' or 'fingertip')
             initial_guess: Initial joint angles
         Returns:
             Tuple of (joint angles for all fingers, success flag)
@@ -199,7 +199,7 @@ class HandKinematicsBase:
         
         for finger, target in finger_targets.positions.items():
             result, success = self.inverse_kinematics_finger(
-                finger, target, frame, initial_guess
+                finger, target, frame, end_effector, initial_guess
             )
             all_results.update(result.angles)
             all_success &= success
