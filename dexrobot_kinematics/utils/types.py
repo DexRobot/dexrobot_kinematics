@@ -8,7 +8,7 @@ import pinocchio as pin
 class Position:
     """3D position representation with x, y, z coordinates"""
     x: float
-    y: float 
+    y: float
     z: float
 
     def to_array(self) -> np.ndarray:
@@ -38,13 +38,3 @@ class Pose:
             position=Position.from_array(se3.translation),
             orientation=se3.rotation
         )
-
-@dataclass 
-class JointAngles:
-    """Container for joint angles"""
-    angles: Dict[str, float]
-
-@dataclass
-class FingerTargets:
-    """Container for finger target positions"""
-    positions: Dict[str, Position]
