@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dexrobot_kinematics.hand.base &mdash; DexRobot Kinematics 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            DexRobot Kinematics
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DexRobot Kinematics</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../hand.html">dexrobot_kinematics.hand</a></li>
+      <li class="breadcrumb-item active">dexrobot_kinematics.hand.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dexrobot_kinematics.hand.base</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pinocchio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.ik_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">HandIKSolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Position</span><span class="p">,</span> <span class="n">Pose</span>
+
+
+<div class="viewcode-block" id="HandKinematicsBase">
+<a class="viewcode-back" href="../../../api/hand.html#dexrobot_kinematics.hand.base.HandKinematicsBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HandKinematicsBase</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for hand kinematics calculations&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handedness</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize hand kinematics with URDF and config files</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            handedness: Handedness of the robot (&quot;right&quot; or &quot;left&quot;)</span>
+<span class="sd">            config_path: Path to configuration YAML file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handedness</span> <span class="o">=</span> <span class="n">handedness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span>
+
+        <span class="c1"># Load configuration</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">urdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;urdf_path&quot;</span><span class="p">]</span>
+        <span class="n">mesh_path</span> <span class="o">=</span> <span class="n">urdf_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;../meshes&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">urdf_path</span> <span class="o">=</span> <span class="n">urdf_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_path</span> <span class="o">=</span> <span class="n">mesh_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">RobotWrapper</span><span class="o">.</span><span class="n">BuildFromURDF</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">urdf_path</span><span class="p">),</span> <span class="n">package_dirs</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">mesh_path</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frames</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ik_solvers</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_finger_name_to_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">finger</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert finger name to integer ID&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;thumb&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;middle&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;ring&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">&quot;little&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">finger</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize frame IDs for both finger pads and fingertips&quot;&quot;&quot;</span>
+        <span class="c1"># Load finger frames from config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fingerpad_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;fingerpad_frames&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fingertip_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;fingertip_frames&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Initialize frame IDs for both types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fingerpad_ids</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">finger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getFrameId</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingerpad_frames</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fingertip_ids</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">finger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getFrameId</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingertip_frames</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="HandKinematicsBase.forward_kinematics">
+<a class="viewcode-back" href="../../../api/hand.html#dexrobot_kinematics.hand.base.HandKinematicsBase.forward_kinematics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward_kinematics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">joint_angles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">base_pose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pose</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hand&quot;</span><span class="p">,</span>
+        <span class="n">end_effector</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fingerpad&quot;</span><span class="p">,</span>  <span class="c1"># &#39;fingerpad&#39; or &#39;fingertip&#39;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pose</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute forward kinematics for all fingers</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            joint_angles: Current joint angles</span>
+<span class="sd">            base_pose: Optional base pose of the hand, used to transform output pose when frame is &#39;world&#39;</span>
+<span class="sd">            frame: Reference frame (&#39;hand&#39; or &#39;world&#39;)</span>
+<span class="sd">            end_effector: Target frame type (&#39;fingerpad&#39; or &#39;fingertip&#39;)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary of finger poses in specified frame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert joint angles to configuration vector</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nq</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">joint</span><span class="p">,</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">joint_angles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getJointId</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span>
+            <span class="n">q</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle</span>  <span class="c1"># Skip the &quot;universe&quot; joint</span>
+
+        <span class="n">pin</span><span class="o">.</span><span class="n">forwardKinematics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">pin</span><span class="o">.</span><span class="n">updateFramePlacements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># Select appropriate frame IDs based on end effector type</span>
+        <span class="n">target_ids</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fingertip_ids</span> <span class="k">if</span> <span class="n">end_effector</span> <span class="o">==</span> <span class="s2">&quot;fingertip&quot;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingerpad_ids</span>
+        <span class="p">)</span>
+
+        <span class="n">poses</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">frame_id</span> <span class="ow">in</span> <span class="n">target_ids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">pose</span> <span class="o">=</span> <span class="n">Pose</span><span class="o">.</span><span class="n">from_se3</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">oMf</span><span class="p">[</span><span class="n">frame_id</span><span class="p">])</span>
+
+            <span class="c1"># Transform to world frame if needed</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="o">==</span> <span class="s2">&quot;world&quot;</span> <span class="ow">and</span> <span class="n">base_pose</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pose</span> <span class="o">=</span> <span class="n">base_pose</span><span class="o">.</span><span class="n">to_se3</span><span class="p">()</span> <span class="o">*</span> <span class="n">pose</span><span class="o">.</span><span class="n">to_se3</span><span class="p">()</span>
+                <span class="n">pose</span> <span class="o">=</span> <span class="n">Pose</span><span class="o">.</span><span class="n">from_se3</span><span class="p">(</span><span class="n">pose</span><span class="p">)</span>
+
+            <span class="n">poses</span><span class="p">[</span><span class="n">finger</span><span class="p">]</span> <span class="o">=</span> <span class="n">pose</span>
+
+        <span class="k">return</span> <span class="n">poses</span></div>
+
+
+<div class="viewcode-block" id="HandKinematicsBase.inverse_kinematics_finger">
+<a class="viewcode-back" href="../../../api/hand.html#dexrobot_kinematics.hand.base.HandKinematicsBase.inverse_kinematics_finger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inverse_kinematics_finger</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">finger</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">target_pos</span><span class="p">:</span> <span class="n">Position</span><span class="p">,</span>
+        <span class="n">base_pose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pose</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hand&quot;</span><span class="p">,</span>
+        <span class="n">end_effector</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fingerpad&quot;</span><span class="p">,</span>
+        <span class="n">initial_guess</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solve IK for a single finger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            finger: Target finger name</span>
+<span class="sd">            target_pos: Target position</span>
+<span class="sd">            base_pose: Optional base pose of the hand, used to transform target when frame is &#39;world&#39;</span>
+<span class="sd">            frame: Reference frame (&#39;hand&#39; or &#39;world&#39;)</span>
+<span class="sd">            end_effector: Target frame type (&#39;fingerpad&#39; or &#39;fingertip&#39;)</span>
+<span class="sd">            initial_guess: Initial joint angles</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (joint angles, success flag)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Transform target position to hand frame if needed</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="o">==</span> <span class="s2">&quot;world&quot;</span> <span class="ow">and</span> <span class="n">base_pose</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target_pos</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">base_pose</span><span class="o">.</span><span class="n">to_se3</span><span class="p">()</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span> <span class="o">*</span> <span class="n">Pose</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">target_pos</span><span class="p">)</span><span class="o">.</span><span class="n">to_se3</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">target_pos</span> <span class="o">=</span> <span class="n">Position</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">target_pos</span><span class="o">.</span><span class="n">translation</span><span class="p">)</span>
+
+        <span class="c1"># Select target frame based on end effector type</span>
+        <span class="n">target_frame</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fingertip_frames</span><span class="p">[</span><span class="n">finger</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">end_effector</span> <span class="o">==</span> <span class="s2">&quot;fingertip&quot;</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingerpad_frames</span><span class="p">[</span><span class="n">finger</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">finger</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ik_solvers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ik_solvers</span><span class="p">[</span><span class="n">finger</span><span class="p">]</span> <span class="o">=</span> <span class="n">HandIKSolver</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">handedness</span><span class="p">,</span> <span class="n">target_frame</span><span class="p">,</span> <span class="n">config_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_path</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">initial_guess</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">q0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nq</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">joint</span><span class="p">,</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">initial_guess</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getJointId</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span>
+                <span class="n">q0</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q0</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">q</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ik_solvers</span><span class="p">[</span><span class="n">finger</span><span class="p">]</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[rl]_f_joint</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_finger_name_to_id</span><span class="p">(</span><span class="n">finger</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">joint</span><span class="p">):</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getJointId</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">success</span></div>
+
+
+<div class="viewcode-block" id="HandKinematicsBase.inverse_kinematics_grasp">
+<a class="viewcode-back" href="../../../api/hand.html#dexrobot_kinematics.hand.base.HandKinematicsBase.inverse_kinematics_grasp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inverse_kinematics_grasp</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">finger_targets</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Position</span><span class="p">],</span>
+        <span class="n">base_pose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pose</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hand&quot;</span><span class="p">,</span>
+        <span class="n">end_effector</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fingerpad&quot;</span><span class="p">,</span>
+        <span class="n">initial_guess</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solve IK for multiple fingers simultaneously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            finger_targets: Target positions for each finger</span>
+<span class="sd">            base_pose: Optional base pose of the hand, used to transform target when frame is &#39;world</span>
+<span class="sd">            frame: Reference frame (&#39;hand&#39; or &#39;world&#39;)</span>
+<span class="sd">            end_effector: Target frame type (&#39;fingerpad&#39; or &#39;fingertip&#39;)</span>
+<span class="sd">            initial_guess: Initial joint angles</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (joint angles for all fingers, success flag)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">all_success</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">finger_targets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_kinematics_finger</span><span class="p">(</span>
+                <span class="n">finger</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">base_pose</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">end_effector</span><span class="p">,</span> <span class="n">initial_guess</span>
+            <span class="p">)</span>
+            <span class="n">all_results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="n">all_success</span> <span class="o">&amp;=</span> <span class="n">success</span>
+
+        <span class="k">return</span> <span class="n">all_results</span><span class="p">,</span> <span class="n">all_success</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DexRobot Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

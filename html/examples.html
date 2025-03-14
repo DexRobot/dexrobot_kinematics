@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples &mdash; DexRobot Kinematics 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Utilities" href="api/utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DexRobot Kinematics
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hardware-control-using-finger-inverse-kinematics">Hardware control using finger inverse kinematics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interfacing-inverse-kinematics-with-ros">Interfacing inverse kinematics with ROS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forward-kinematics-based-on-hardware-feedback">Forward kinematics based on hardware feedback</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DexRobot Kinematics</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<p>This section demonstrates how to use the DexRobot Kinematics library with complete example scripts.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#hardware-control-using-finger-inverse-kinematics" id="id4">Hardware control using finger inverse kinematics</a></p></li>
+<li><p><a class="reference internal" href="#interfacing-inverse-kinematics-with-ros" id="id5">Interfacing inverse kinematics with ROS</a></p></li>
+<li><p><a class="reference internal" href="#forward-kinematics-based-on-hardware-feedback" id="id6">Forward kinematics based on hardware feedback</a></p></li>
+</ul>
+</nav>
+<section id="hardware-control-using-finger-inverse-kinematics">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Hardware control using finger inverse kinematics</a><a class="headerlink" href="#hardware-control-using-finger-inverse-kinematics" title="Link to this heading"></a></h2>
+<p>In this example, we solve inverse kinematics for a finger, and send the resulting joint angles to DexHand using the <cite>pyzlg_dexhand</cite> library.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">examples/finger_ik_hardware.py</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 2</span><span class="sd">Solve IK for a single finger and directly control the hardware.</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="sd">The code works for the right hand by default, but you can change the hand as needed.</span>
+<span class="linenos"> 5</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 8</span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="linenos"> 9</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.hand</span><span class="w"> </span><span class="kn">import</span> <span class="n">RightHandKinematics</span>
+<span class="linenos">10</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Position</span>
+<span class="linenos">11</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.hardware</span><span class="w"> </span><span class="kn">import</span> <span class="n">JointMapping</span>
+<span class="linenos">12</span><span class="kn">from</span><span class="w"> </span><span class="nn">pyzlg_dexhand.dexhand_interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">RightDexHand</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span><span class="c1"># Initialize hand</span>
+<span class="linenos">15</span><span class="n">kin</span> <span class="o">=</span> <span class="n">RightHandKinematics</span><span class="p">()</span>
+<span class="linenos">16</span><span class="n">hand</span> <span class="o">=</span> <span class="n">RightDexHand</span><span class="p">()</span>
+<span class="linenos">17</span><span class="n">joint_mapping</span> <span class="o">=</span> <span class="n">JointMapping</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="c1"># Define a circular trajectory</span>
+<span class="linenos">20</span><span class="n">center</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.22</span><span class="p">)</span>
+<span class="linenos">21</span><span class="n">radius</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="linenos">22</span><span class="n">steps</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span><span class="c1"># Simulate motion</span>
+<span class="linenos">25</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">steps</span><span class="p">):</span>
+<span class="linenos">26</span>    <span class="c1"># Calculate position along circle</span>
+<span class="linenos">27</span>    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">steps</span><span class="p">:</span>
+<span class="linenos">28</span>        <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">steps</span>
+<span class="linenos">29</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">30</span>        <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">steps</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">steps</span>
+<span class="linenos">31</span>    <span class="n">target</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span>
+<span class="linenos">32</span>        <span class="n">x</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span>
+<span class="linenos">33</span>        <span class="n">y</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+<span class="linenos">34</span>        <span class="n">z</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">z</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span>
+<span class="linenos">35</span>    <span class="p">)</span>
+<span class="linenos">36</span>
+<span class="linenos">37</span>    <span class="c1"># Solve IK</span>
+<span class="linenos">38</span>    <span class="n">joint_angles</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="n">kin</span><span class="o">.</span><span class="n">inverse_kinematics_finger</span><span class="p">(</span>
+<span class="linenos">39</span>        <span class="n">finger</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">target_pos</span><span class="o">=</span><span class="n">target</span>
+<span class="linenos">40</span>    <span class="p">)</span>
+<span class="linenos">41</span>
+<span class="linenos">42</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Joint angles = </span><span class="si">{</span><span class="n">joint_angles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">43</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+<span class="linenos">44</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;IK failed; solution may be inaccurate&quot;</span><span class="p">)</span>
+<span class="linenos">45</span>    <span class="c1"># In a real system, you would send these angles to the robot</span>
+<span class="linenos">46</span>    <span class="n">commands</span> <span class="o">=</span> <span class="n">joint_mapping</span><span class="o">.</span><span class="n">map_command</span><span class="p">(</span><span class="n">joint_angles</span><span class="p">)</span>
+<span class="linenos">47</span>    <span class="n">hand</span><span class="o">.</span><span class="n">move_joints</span><span class="p">(</span><span class="o">**</span><span class="n">commands</span><span class="p">)</span>
+<span class="linenos">48</span>    <span class="n">hand</span><span class="o">.</span><span class="n">clear_errors</span><span class="p">(</span><span class="n">clear_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">49</span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="interfacing-inverse-kinematics-with-ros">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Interfacing inverse kinematics with ROS</a><a class="headerlink" href="#interfacing-inverse-kinematics-with-ros" title="Link to this heading"></a></h2>
+<p>In this example, we solve inverse kinematics for a finger, and publish the resulting joint angles to a ROS topic. The script can be used in combination with ROS nodes in <cite>pyzlg_dexhand</cite> or <cite>dexrobot_mujoco</cite> to control either hardware or simulated hand.</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">examples/finger_ik_ros.py</span><a class="headerlink" href="#id2" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 2</span><span class="sd">Solve IK for a single finger and send the result to ROS/ROS2.</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="sd">Can be used together with the ROS nodes in dexrobot_mujoco or pyzlg_dexhand to control either the hardware or a simulation.</span>
+<span class="linenos"> 5</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 8</span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="linenos"> 9</span><span class="kn">from</span><span class="w"> </span><span class="nn">ros_compat</span><span class="w"> </span><span class="kn">import</span> <span class="n">ROSNode</span>
+<span class="linenos">10</span><span class="kn">from</span><span class="w"> </span><span class="nn">sensor_msgs.msg</span><span class="w"> </span><span class="kn">import</span> <span class="n">JointState</span>
+<span class="linenos">11</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.hand</span><span class="w"> </span><span class="kn">import</span> <span class="n">RightHandKinematics</span>
+<span class="linenos">12</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Position</span>
+<span class="linenos">13</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.hardware</span><span class="w"> </span><span class="kn">import</span> <span class="n">JointMapping</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span><span class="k">class</span><span class="w"> </span><span class="nc">DexHandIKNode</span><span class="p">(</span><span class="n">ROSNode</span><span class="p">):</span>
+<span class="linenos">17</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">18</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;dexhand_ik_node&quot;</span><span class="p">)</span>
+<span class="linenos">19</span>        <span class="bp">self</span><span class="o">.</span><span class="n">kin</span> <span class="o">=</span> <span class="n">RightHandKinematics</span><span class="p">()</span>
+<span class="linenos">20</span>        <span class="bp">self</span><span class="o">.</span><span class="n">joint_pub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_publisher</span><span class="p">(</span><span class="n">JointState</span><span class="p">,</span> <span class="s2">&quot;joint_commands&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="linenos">21</span>        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_timer</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">timer_callback</span><span class="p">)</span>
+<span class="linenos">22</span>        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>    <span class="k">def</span><span class="w"> </span><span class="nf">timer_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">25</span>        <span class="c1"># Define a circular trajectory</span>
+<span class="linenos">26</span>        <span class="n">center</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.22</span><span class="p">)</span>
+<span class="linenos">27</span>        <span class="n">radius</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="linenos">28</span>        <span class="n">steps</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>        <span class="c1"># Calculate position along circle</span>
+<span class="linenos">31</span>        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span>
+<span class="linenos">32</span>        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="linenos">33</span>        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">steps</span><span class="p">:</span>
+<span class="linenos">34</span>            <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">steps</span>
+<span class="linenos">35</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos">36</span>            <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">steps</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">steps</span>
+<span class="linenos">37</span>        <span class="n">target</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span>
+<span class="linenos">38</span>            <span class="n">x</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span>
+<span class="linenos">39</span>            <span class="n">y</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+<span class="linenos">40</span>            <span class="n">z</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">z</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span>
+<span class="linenos">41</span>        <span class="p">)</span>
+<span class="linenos">42</span>
+<span class="linenos">43</span>        <span class="c1"># Solve IK</span>
+<span class="linenos">44</span>        <span class="n">joint_angles</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kin</span><span class="o">.</span><span class="n">inverse_kinematics_finger</span><span class="p">(</span>
+<span class="linenos">45</span>            <span class="n">finger</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">target_pos</span><span class="o">=</span><span class="n">target</span>
+<span class="linenos">46</span>        <span class="p">)</span>
+<span class="linenos">47</span>
+<span class="linenos">48</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Joint angles = </span><span class="si">{</span><span class="n">joint_angles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">49</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+<span class="linenos">50</span>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;IK failed; solution may be inaccurate&quot;</span><span class="p">)</span>
+<span class="linenos">51</span>
+<span class="linenos">52</span>        <span class="c1"># Publish joint angles</span>
+<span class="linenos">53</span>        <span class="n">msg</span> <span class="o">=</span> <span class="n">JointState</span><span class="p">()</span>
+<span class="linenos">54</span>        <span class="n">msg</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">stamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ros_time</span><span class="p">()</span><span class="o">.</span><span class="n">to_msg</span><span class="p">()</span>
+<span class="linenos">55</span>        <span class="n">msg</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">joint_angles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="linenos">56</span>        <span class="n">msg</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">joint_angles</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="linenos">57</span>        <span class="bp">self</span><span class="o">.</span><span class="n">joint_pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="linenos">58</span>
+<span class="linenos">59</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">60</span>    <span class="n">node</span> <span class="o">=</span> <span class="n">DexHandIKNode</span><span class="p">()</span>
+<span class="linenos">61</span>    <span class="n">node</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="forward-kinematics-based-on-hardware-feedback">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Forward kinematics based on hardware feedback</a><a class="headerlink" href="#forward-kinematics-based-on-hardware-feedback" title="Link to this heading"></a></h2>
+<p>In this example, we read joint angles from DexHand using the <cite>pyzlg_dexhand</cite> library, and compute the forward kinematics to get the fingerpad and fingertip poses.</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">examples/fk_hardware.py</span><a class="headerlink" href="#id3" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 2</span><span class="sd">Run FK to obtain fingertip and fingerpad positions, from hardware joint angle readings.</span>
+<span class="linenos"> 3</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 6</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.hand</span><span class="w"> </span><span class="kn">import</span> <span class="n">RightHandKinematics</span>
+<span class="linenos"> 7</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Position</span><span class="p">,</span> <span class="n">Pose</span>
+<span class="linenos"> 8</span><span class="kn">from</span><span class="w"> </span><span class="nn">dexrobot_kinematics.utils.hardware</span><span class="w"> </span><span class="kn">import</span> <span class="n">JointMapping</span>
+<span class="linenos"> 9</span><span class="kn">from</span><span class="w"> </span><span class="nn">pyzlg_dexhand.dexhand_interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">RightDexHand</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="c1"># Initialize hand</span>
+<span class="linenos">12</span><span class="n">kin</span> <span class="o">=</span> <span class="n">RightHandKinematics</span><span class="p">()</span>
+<span class="linenos">13</span><span class="n">hand</span> <span class="o">=</span> <span class="n">RightDexHand</span><span class="p">()</span>
+<span class="linenos">14</span><span class="n">joint_mapping</span> <span class="o">=</span> <span class="n">JointMapping</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span><span class="c1"># Drive the hand joints to a known position and read feedback</span>
+<span class="linenos">17</span><span class="n">commands</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">18</span>    <span class="s2">&quot;th_rot&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">19</span>    <span class="s2">&quot;th_mcp&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">20</span>    <span class="s2">&quot;th_dip&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">21</span>    <span class="s2">&quot;ff_spr&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+<span class="linenos">22</span>    <span class="s2">&quot;ff_mcp&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">23</span>    <span class="s2">&quot;ff_dip&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">24</span>    <span class="s2">&quot;mf_mcp&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">25</span>    <span class="s2">&quot;mf_dip&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">26</span>    <span class="s2">&quot;rf_mcp&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">27</span>    <span class="s2">&quot;rf_dip&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">28</span>    <span class="s2">&quot;lf_mcp&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">29</span>    <span class="s2">&quot;lf_dip&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="linenos">30</span><span class="p">}</span>
+<span class="linenos">31</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="linenos">32</span>    <span class="n">hand</span><span class="o">.</span><span class="n">move_joints</span><span class="p">(</span><span class="o">**</span><span class="n">commands</span><span class="p">)</span>
+<span class="linenos">33</span>    <span class="n">hand</span><span class="o">.</span><span class="n">clear_errors</span><span class="p">(</span><span class="n">clear_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">34</span><span class="n">feedback</span> <span class="o">=</span> <span class="n">hand</span><span class="o">.</span><span class="n">get_feedback</span><span class="p">()</span>
+<span class="linenos">35</span><span class="n">hardware_feedback_angles</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">joint</span><span class="o">.</span><span class="n">angle</span> <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">joint</span><span class="p">)</span> <span class="ow">in</span> <span class="n">feedback</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="linenos">36</span><span class="n">joint_angles</span> <span class="o">=</span> <span class="n">joint_mapping</span><span class="o">.</span><span class="n">map_feedback</span><span class="p">(</span><span class="n">hardware_feedback_angles</span><span class="p">)</span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="c1"># Define base pose of the hand</span>
+<span class="linenos">39</span><span class="n">R</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">rpyToMatrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="linenos">40</span><span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="linenos">41</span><span class="n">base_pose</span> <span class="o">=</span> <span class="n">Pose</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">Position</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">orientation</span><span class="o">=</span><span class="n">R</span><span class="p">)</span>
+<span class="linenos">42</span>
+<span class="linenos">43</span><span class="c1"># Run forward kinematics</span>
+<span class="linenos">44</span><span class="n">fingertip_poses_hand</span> <span class="o">=</span> <span class="n">kin</span><span class="o">.</span><span class="n">forward_kinematics</span><span class="p">(</span><span class="n">joint_angles</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;hand&quot;</span><span class="p">,</span> <span class="n">end_effector</span><span class="o">=</span><span class="s2">&quot;fingertip&quot;</span><span class="p">)</span>
+<span class="linenos">45</span><span class="n">fingerpad_poses_hand</span> <span class="o">=</span> <span class="n">kin</span><span class="o">.</span><span class="n">forward_kinematics</span><span class="p">(</span><span class="n">joint_angles</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;hand&quot;</span><span class="p">,</span> <span class="n">end_effector</span><span class="o">=</span><span class="s2">&quot;fingerpad&quot;</span><span class="p">)</span>
+<span class="linenos">46</span><span class="n">fingertip_poses_world</span> <span class="o">=</span> <span class="n">kin</span><span class="o">.</span><span class="n">forward_kinematics</span><span class="p">(</span><span class="n">joint_angles</span><span class="p">,</span> <span class="n">base_pose</span><span class="o">=</span><span class="n">base_pose</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="n">end_effector</span><span class="o">=</span><span class="s2">&quot;fingertip&quot;</span><span class="p">)</span>
+<span class="linenos">47</span><span class="n">fingerpad_poses_world</span> <span class="o">=</span> <span class="n">kin</span><span class="o">.</span><span class="n">forward_kinematics</span><span class="p">(</span><span class="n">joint_angles</span><span class="p">,</span> <span class="n">base_pose</span><span class="o">=</span><span class="n">base_pose</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="n">end_effector</span><span class="o">=</span><span class="s2">&quot;fingerpad&quot;</span><span class="p">)</span>
+<span class="linenos">48</span>
+<span class="linenos">49</span><span class="c1"># Print results tables</span>
+<span class="linenos">50</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fingertip poses (hand frame):&quot;</span><span class="p">)</span>
+<span class="linenos">51</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finger | Position (m) | Quaternion&quot;</span><span class="p">)</span>
+<span class="linenos">52</span><span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">fingertip_poses_hand</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">53</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">finger</span><span class="si">:</span><span class="s2">6</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">to_quaternion</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">54</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Fingerpad poses (hand frame):&quot;</span><span class="p">)</span>
+<span class="linenos">55</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finger | Position (m) | Quaternion&quot;</span><span class="p">)</span>
+<span class="linenos">56</span><span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">fingerpad_poses_hand</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">57</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">finger</span><span class="si">:</span><span class="s2">6</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">to_quaternion</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">58</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Fingertip poses (world frame):&quot;</span><span class="p">)</span>
+<span class="linenos">59</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finger | Position (m) | Quaternion&quot;</span><span class="p">)</span>
+<span class="linenos">60</span><span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">fingertip_poses_world</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">61</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">finger</span><span class="si">:</span><span class="s2">6</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">to_quaternion</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">62</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Fingerpad poses (world frame):&quot;</span><span class="p">)</span>
+<span class="linenos">63</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finger | Position (m) | Quaternion&quot;</span><span class="p">)</span>
+<span class="linenos">64</span><span class="k">for</span> <span class="n">finger</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">fingerpad_poses_world</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">65</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">finger</span><span class="si">:</span><span class="s2">6</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">to_quaternion</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/utils.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DexRobot Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
