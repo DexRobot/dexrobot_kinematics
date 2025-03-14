@@ -1,93 +1,186 @@
-# dexrobot_kinematics
+[English](README.md) | [中文](README_zh.md)
 
+# DexRobot Kinematics
 
+A Python library for forward and inverse kinematics of robotic hands, particularly designed for DexHand. Provides utilities for both isolated hand operations and integrated arm-hand systems.
 
-## Getting started
+## Features
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin http://192.168.1.31/all/dexrobot_kinematics.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](http://192.168.1.31/all/dexrobot_kinematics/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- **Forward Kinematics**: Calculate finger positions and orientations from joint angles
+- **Inverse Kinematics**: Solve for joint angles to achieve desired fingertip/fingerpad positions
+- **Multi-Finger Grasp Planning**: Define grasp targets for multiple fingers simultaneously
+- **Arm-Hand Integration**: Combined kinematics for integrated robotic arm and hand systems
+- **Hardware Interface**: Direct integration with DexHand hardware and ROS
+- **Support for both left and right hands**: Consistent API across both hand configurations
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Prerequisites
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- Python 3.8 or newer
+- NumPy
+- Pinocchio (for robot kinematics)
+- PyYAML (for configuration files)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Basic Installation
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+# Clone the repository
+git clone https://github.com/dexrobot/dexrobot_kinematics.git
+cd dexrobot_kinematics
+pip install -e .
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+# Clone the URDF models repository (required for kinematics)
+# In the same parent directory as dexrobot_kinematics
+git clone https://github.com/dexrobot/dexrobot_urdf.git
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Quick Start
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Initialize a Hand
+
+```python
+from dexrobot_kinematics.hand import RightHandKinematics
+
+# Initialize a right hand with default configuration
+hand = RightHandKinematics()
+```
+
+### Forward Kinematics
+
+Compute fingertip/fingerpad poses from joint angles:
+
+```python
+# Define joint angles
+joint_angles = {name: 0.0 for name in hand.robot.model.names[1:]}
+
+# Get fingerpad poses in hand frame
+poses = hand.forward_kinematics(joint_angles, end_effector="fingerpad")
+
+# Access individual finger poses
+thumb_pose = poses["thumb"]
+print(f"Thumb position: {thumb_pose.position.x}, {thumb_pose.position.y}, {thumb_pose.position.z}")
+```
+
+### Inverse Kinematics for a Single Finger
+
+```python
+from dexrobot_kinematics.utils.types import Position
+
+# Define target position for index finger
+target_pos = Position(x=0.07, y=0.04, z=0.17)
+
+# Solve IK for index finger
+joint_angles, success = hand.inverse_kinematics_finger(
+    finger="index",
+    target_pos=target_pos
+)
+
+if success:
+    print("Successfully solved IK!")
+    print(f"Joint angles: {joint_angles}")
+```
+
+### Multi-Finger Grasping
+
+```python
+# Define target positions for thumb and index (for a pinch grasp)
+finger_targets = {
+    "thumb": Position(x=0.07, y=0.04, z=0.15),
+    "index": Position(x=0.07, y=0.04, z=0.17)
+}
+
+# Solve IK for grasp
+joint_angles, success = hand.inverse_kinematics_grasp(finger_targets)
+```
+
+## Key Concepts
+
+### Coordinate Systems
+
+The library uses two primary reference frames:
+
+1. **Hand Frame**: Local coordinate system centered at the hand base
+   - X-axis pointing toward palm
+   - Y-axis pointing away from thumb (left hand) or toward thumb (right hand)
+   - Z-axis pointing toward fingertips
+
+2. **World Frame**: Global coordinate system that can be defined via a base_pose
+
+```python
+import numpy as np
+import pinocchio as pin
+from dexrobot_kinematics.utils.types import Position, Pose
+
+# Define a base pose with rotation and translation
+R = pin.utils.rpyToMatrix(0, np.pi/2, 0)  # 90° rotation around Y
+t = np.array([1.0, 0.0, 0.0])            # 1m in X direction
+base_pose = Pose(position=Position.from_array(t), orientation=R)
+
+# Use in forward kinematics to get poses in world frame
+poses = hand.forward_kinematics(joint_angles, base_pose=base_pose, frame="world")
+```
+
+### End Effector Types
+
+Two types of end effectors are supported:
+
+- **Fingerpads**: Contact surfaces on each finger, used for grasping
+- **Fingertips**: The very ends of each finger
+
+```python
+# Get fingerpad poses
+fingerpad_poses = hand.forward_kinematics(joint_angles, end_effector="fingerpad")
+
+# Get fingertip poses
+fingertip_poses = hand.forward_kinematics(joint_angles, end_effector="fingertip")
+```
+
+## Hardware Integration
+
+### Controlling DexHand Hardware
+
+```python
+from dexrobot_kinematics.hand import RightHandKinematics
+from dexrobot_kinematics.utils.hardware import JointMapping
+from pyzlg_dexhand.dexhand_interface import RightDexHand
+
+# Initialize hand objects
+kin = RightHandKinematics()
+hand = RightDexHand()
+joint_mapping = JointMapping(prefix="r")
+
+# Solve IK for a finger position
+joint_angles, success = kin.inverse_kinematics_finger(
+    finger="index",
+    target_pos=Position(x=0.07, y=0.04, z=0.17)
+)
+
+# Map URDF joint angles to hardware commands
+commands = joint_mapping.map_command(joint_angles)
+
+# Send commands to hardware
+hand.move_joints(**commands)
+```
+
+### ROS Integration
+
+```python
+# See examples/finger_ik_ros.py for a complete ROS node example
+```
+
+## Documentation
+
+For full API documentation, refer to the [documentation](https://dexrobot.github.io/dexrobot_kinematics/).
+
+## Examples
+
+The `examples/` directory contains sample scripts demonstrating various use cases:
+
+- `finger_ik_hardware.py`: Controlling hardware using finger IK
+- `fk_hardware.py`: Computing FK from hardware joint angles
+- `finger_ik_ros.py`: Interfacing with ROS
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
