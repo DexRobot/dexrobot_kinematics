@@ -38,3 +38,7 @@ class Pose:
             position=Position.from_array(se3.translation),
             orientation=se3.rotation
         )
+
+    def to_quaternion(self) -> np.ndarray:
+        """Convert orientation to quaternion"""
+        return pin.rpy.matrixToQuaternion(self.orientation)

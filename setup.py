@@ -24,6 +24,11 @@ setup(
             "pytest-cov>=3.0.0",   # Test coverage
             "pytest-xdist>=2.4.0", # Parallel testing
         ],
+        "docs": [
+            "sphinx>=8.1.3",
+            "sphinx-rtd-theme>=1.3.0",
+            "sphinx-autodoc-typehints",
+        ],
     },
 
     # Package data

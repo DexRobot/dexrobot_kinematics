@@ -12,25 +12,28 @@ from dexrobot_kinematics.utils.types import Position, Pose
 class HandKinematicsBase:
     """Base class for hand kinematics calculations"""
 
-    def __init__(self, handedness: str, urdf_path: Path, config_path: Path):
+    def __init__(self, handedness: str, config_path: Path):
         """
         Initialize hand kinematics with URDF and config files
 
         Args:
             handedness: Handedness of the robot ("right" or "left")
-            urdf_path: Path to robot URDF file
             config_path: Path to configuration YAML file
         """
         self.handedness = handedness
-        mesh_path = urdf_path.parent / "../meshes"
-        self.robot = pin.RobotWrapper.BuildFromURDF(
-            str(urdf_path), package_dirs=[mesh_path]
-        )
         self.config_path = config_path
 
         # Load configuration
         with open(config_path, "r") as f:
             self.config = yaml.safe_load(f)
+
+        urdf_path = Path(config_path).parent / self.config["urdf_path"]
+        mesh_path = urdf_path.parent / "../meshes"
+        self.urdf_path = urdf_path
+        self.mesh_path = mesh_path
+        self.robot = pin.RobotWrapper.BuildFromURDF(
+            str(urdf_path), package_dirs=[str(mesh_path)]
+        )
 
         self._init_frames()
         self.ik_solvers = {}

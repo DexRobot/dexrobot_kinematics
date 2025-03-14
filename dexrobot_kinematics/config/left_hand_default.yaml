@@ -1,7 +1,7 @@
 # Left Hand Configuration
 
 # URDF paths
-urdf_path: "dexrobot_urdf/urdf/dexhand021_left.urdf"
+urdf_path: "../../../dexrobot_urdf/urdf/dexhand021_left.urdf"
 
 # Frame names for each fingerpad
 fingerpad_frames:
