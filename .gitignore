@@ -85,3 +85,7 @@ docs/generated/
 generated/
 output/
 results/
+
+background.txt
+query.txt
+dexrobot_kinematics.txt
