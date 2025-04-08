@@ -34,7 +34,13 @@ class HandIKSolver:
         """
         self.robot = robot
         self.handedness = handedness
+        self.target_frame = target_frame
         self.frame_id = robot.model.getFrameId(target_frame)
+        
+        # Verify frame exists in the model
+        if self.frame_id == 0:
+            raise ValueError(f"Target frame '{target_frame}' not found in the URDF model")
+            
         self.eps = eps
         self.max_iter = max_iter
         self.damping = damping
@@ -65,12 +71,27 @@ class HandIKSolver:
         fingers = [f"{prefix}_f_joint1", f"{prefix}_f_joint2", f"{prefix}_f_joint3", f"{prefix}_f_joint4", f"{prefix}_f_joint5"]
 
         for finger in fingers:
-            j3_id = self.robot.model.getJointId(f"{finger}_3")
-            j4_id = self.robot.model.getJointId(f"{finger}_4")
+            j3_joint = f"{finger}_3"
+            j4_joint = f"{finger}_4"
+            j3_id = self.robot.model.getJointId(j3_joint)
+            j4_id = self.robot.model.getJointId(j4_joint)
 
-            if j3_id != 0 and j4_id != 0:
-                avg_angle = (q_sync[j3_id - 1] + q_sync[j4_id - 1]) / 2.0
-                q_sync[j3_id - 1] = q_sync[j4_id - 1] = avg_angle
+            # Check if both joints exist
+            if j3_id == 0:
+                print(f"Warning: Joint '{j3_joint}' not found in the URDF model, cannot synchronize")
+                continue
+                
+            if j4_id == 0:
+                print(f"Warning: Joint '{j4_joint}' not found in the URDF model, cannot synchronize")
+                continue
+                
+            # Make sure indices are valid before accessing array
+            if j3_id > 0 and j4_id > 0:
+                try:
+                    avg_angle = (q_sync[j3_id - 1] + q_sync[j4_id - 1]) / 2.0
+                    q_sync[j3_id - 1] = q_sync[j4_id - 1] = avg_angle
+                except IndexError as e:
+                    print(f"Warning: Index error when synchronizing joints {j3_joint} (ID: {j3_id}) and {j4_joint} (ID: {j4_id}): {str(e)}")
 
         return q_sync
 
@@ -130,6 +151,9 @@ class HandIKSolver:
 
             return q, False
 
+        except IndexError as e:
+            print(f"IK solver error: Index out of range for target frame '{self.target_frame}' (ID: {self.frame_id}). This is likely because the frame is missing in the URDF model. Original error: {str(e)}")
+            return pin.neutral(self.robot.model), False
         except Exception as e:
-            print(f"IK solver error: {str(e)}")
+            print(f"IK solver error: {type(e).__name__}: {str(e)}")
             return pin.neutral(self.robot.model), False

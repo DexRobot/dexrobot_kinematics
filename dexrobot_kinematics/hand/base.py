@@ -54,15 +54,20 @@ class HandKinematicsBase:
         self.fingerpad_frames = self.config["fingerpad_frames"]
         self.fingertip_frames = self.config["fingertip_frames"]
 
-        # Initialize frame IDs for both types
-        self.fingerpad_ids = {
-            finger: self.robot.model.getFrameId(frame)
-            for finger, frame in self.fingerpad_frames.items()
-        }
-        self.fingertip_ids = {
-            finger: self.robot.model.getFrameId(frame)
-            for finger, frame in self.fingertip_frames.items()
-        }
+        # Initialize frame IDs for both types with validation
+        self.fingerpad_ids = {}
+        for finger, frame in self.fingerpad_frames.items():
+            frame_id = self.robot.model.getFrameId(frame)
+            if frame_id == 0:  # Pinocchio returns 0 for invalid frames
+                raise ValueError(f"Fingerpad frame '{frame}' for finger '{finger}' not found in the URDF model")
+            self.fingerpad_ids[finger] = frame_id
+            
+        self.fingertip_ids = {}
+        for finger, frame in self.fingertip_frames.items():
+            frame_id = self.robot.model.getFrameId(frame)
+            if frame_id == 0:  # Pinocchio returns 0 for invalid frames
+                raise ValueError(f"Fingertip frame '{frame}' for finger '{finger}' not found in the URDF model")
+            self.fingertip_ids[finger] = frame_id
 
     def forward_kinematics(
         self,
@@ -86,6 +91,8 @@ class HandKinematicsBase:
         q = np.zeros(self.robot.model.nq)
         for joint, angle in joint_angles.items():
             idx = self.robot.model.getJointId(joint)
+            if idx == 0:
+                raise ValueError(f"Joint '{joint}' not found in the URDF model")
             q[idx - 1] = angle  # Skip the "universe" joint
 
         pin.forwardKinematics(self.robot.model, self.robot.data, q)
@@ -154,6 +161,8 @@ class HandKinematicsBase:
             q0 = np.zeros(self.robot.model.nq)
             for joint, angle in initial_guess.items():
                 idx = self.robot.model.getJointId(joint)
+                if idx == 0:
+                    raise ValueError(f"Joint '{joint}' not found in the URDF model")
                 q0[idx] = angle
         else:
             q0 = None
@@ -161,9 +170,15 @@ class HandKinematicsBase:
         q, success = self.ik_solvers[finger].solve(target_pos, q0)
 
         result = {}
+        finger_id = self._finger_name_to_id(finger)
+        if finger_id == -1:
+            raise ValueError(f"Invalid finger name: '{finger}'. Must be one of: thumb, index, middle, ring, little")
+            
         for joint in self.robot.model.names:
-            if re.match(f"[rl]_f_joint{self._finger_name_to_id(finger)}", joint):
+            if re.match(f"[rl]_f_joint{finger_id}", joint):
                 idx = self.robot.model.getJointId(joint)
+                if idx == 0:
+                    raise ValueError(f"Joint '{joint}' not found in the URDF model")
                 result[joint] = q[idx - 1]
 
         return result, success
