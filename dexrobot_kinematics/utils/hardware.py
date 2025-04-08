@@ -1,5 +1,7 @@
 from typing import Dict, List, Optional
 from enum import Enum
+import numpy as np
+from pyzlg_dexhand.dexhand_interface import DexHandBase
 
 
 class HardwareMapping(Enum):

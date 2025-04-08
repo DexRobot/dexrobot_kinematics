@@ -45,9 +45,7 @@ class DexHandIKNode(ROSNode):
             finger="index", target_pos=target
         )
 
-        print(f"Step {i}: Joint angles = {joint_angles}")
-        if not success:
-            print("IK failed; solution may be inaccurate")
+        print(f"Step {i}: Pos ({target.x:.4f}, {target.y:.4f}, {target.z:.4f}), Angles {list(joint_angles.values())}, Success: {success}")
 
         # Publish joint angles
         msg = JointState()
